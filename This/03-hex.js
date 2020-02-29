@@ -12,20 +12,26 @@ class Hex {
     }
 
     plus(number) {
-        switch (typeof number) {
-            case "number": return '0x' + (this.value + number).toString(16).toUpperCase();
-            case "object": return '0x' + (this.value + number.value).toString(16).toUpperCase();
+        let num = number
+
+        if (num instanceof Hex) {
+            num = number.value;
         }
+
+        return new Hex(this.value + num);
     }
 
     minus(number) {
-        switch (typeof number) {
-            case "number": return '0x' + (this.value - number).toString(16).toUpperCase();
-            case "object": return '0x' + (this.value - number.value).toString(16).toUpperCase();
+        let num = number
+
+        if (num instanceof Hex) {
+            num = number.value;
         }
+
+        return new Hex(this.value - num);
     }
 
     parse(string) {
-        return parseInt(string, 16);
+        return parseInt(string);
     }
 }
