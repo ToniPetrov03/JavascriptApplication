@@ -12,21 +12,13 @@ class Hex {
     }
 
     plus(number) {
-        let num = number
-
-        if (num instanceof Hex) {
-            num = number.value;
-        }
+        const num = number instanceof Hex ? number.value : number;
 
         return new Hex(this.value + num);
     }
 
     minus(number) {
-        let num = number
-
-        if (num instanceof Hex) {
-            num = number.value;
-        }
+        const num = number instanceof Hex ? number.value : number;
 
         return new Hex(this.value - num);
     }
