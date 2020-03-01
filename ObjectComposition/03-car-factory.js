@@ -1,26 +1,14 @@
-function solve(obj) {
-    const power = [90, 120, 200].reduce((prev, curr) => {
-        return Math.abs(curr - obj.power) > Math.abs(prev - obj.power) ? prev : curr;
-    });
-
-    const volumes = {
-        90: 1800,
-        120: 2400,
-        200: 3500,
-    }
-
-    const wheels = obj.wheelsize % 2 === 0 ? obj.wheelsize - 1 : obj.wheelsize;
+function solve({model, power, color, carriage, wheelsize}) {
+    const possibilities = [
+        {power: 90, volume: 1800},
+        {power: 120, volume: 2400},
+        {power: 200, volume: 3500}
+    ];
 
     return {
-        model: obj.model,
-        engine: {
-            power,
-            volume: volumes[power]
-        },
-        carriage: {
-            type: obj.carriage,
-            color: obj.color
-        },
-        wheels: [wheels, wheels, wheels, wheels]
+        model,
+        engine: possibilities.find((p) => power <= p.power),
+        carriage: {type: carriage, color},
+        wheels: Array(4).fill(wheelsize % 2 === 0 ? wheelsize - 1 : wheelsize)
     }
 }
