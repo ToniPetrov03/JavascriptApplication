@@ -20,7 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e607fd8-8f17-4c63-a44d-2fedf37c7786" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ObjectComposition/06-sorted-list.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ObjectComposition/07-bug-tracker/jquery-3.1.1.min.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -32,6 +32,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="JavaScript File" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -47,6 +48,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -93,7 +95,8 @@
       <workItem from="1582966489492" duration="11000" />
       <workItem from="1583059658960" duration="439000" />
       <workItem from="1583069571556" duration="2441000" />
-      <workItem from="1583846680626" duration="5009000" />
+      <workItem from="1583846680626" duration="6978000" />
+      <workItem from="1584019868689" duration="4904000" />
     </task>
     <servers />
   </component>
