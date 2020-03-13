@@ -19,10 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6e607fd8-8f17-4c63-a44d-2fedf37c7786" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ObjectComposition/07-bug-tracker/jquery-3.1.1.min.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="6e607fd8-8f17-4c63-a44d-2fedf37c7786" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -96,7 +93,7 @@
       <workItem from="1583059658960" duration="439000" />
       <workItem from="1583069571556" duration="2441000" />
       <workItem from="1583846680626" duration="6978000" />
-      <workItem from="1584019868689" duration="4904000" />
+      <workItem from="1584019868689" duration="5112000" />
     </task>
     <servers />
   </component>
