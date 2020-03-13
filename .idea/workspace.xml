@@ -20,7 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6e607fd8-8f17-4c63-a44d-2fedf37c7786" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/PrototypesAndInheritance/01-balloons.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PrototypesAndInheritance/02-people.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -92,5 +92,23 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="1899" height="114" key="GridCell.Tab.0.bottom" timestamp="1584108847273">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="114" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1584108847273" />
+    <state width="1899" height="114" key="GridCell.Tab.0.center" timestamp="1584108847273">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="114" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1584108847273" />
+    <state width="1899" height="114" key="GridCell.Tab.0.left" timestamp="1584108847273">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="114" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1584108847273" />
+    <state width="1899" height="114" key="GridCell.Tab.0.right" timestamp="1584108847273">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="114" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1584108847273" />
   </component>
 </project>
