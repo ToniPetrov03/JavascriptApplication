@@ -34,6 +34,6 @@
     };
 
     String.format = function (string, ...params) {
-        return params.reduce((str, param, i) => str.replace(RegExp(`\\{${i}}`), param), string)
+        return params.reduce((str, param, i) => str.replace(new RegExp(`\\{${i}}`), param), string)
     }
 })()
