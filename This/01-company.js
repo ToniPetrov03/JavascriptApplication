@@ -9,21 +9,29 @@ class Company {
         }
 
         if (this.departments[department]) {
-            this.departments[department].push([username, salary, position]);
+            this.departments[department].sum += salary;
+            this.departments[department].employees.push({username, position, salary});
         } else {
-            this.departments[department] = [[username, salary, position]];
+            this.departments[department] = {
+                sum: salary,
+                employees: [
+                    {
+                        username,
+                        position,
+                        salary
+                    }
+                ]
+            };
         }
 
         return `New employee is hired. Name: ${username}. Position: ${position}`;
     }
 
     bestDepartment() {
-        const departments = this.departments;
-
-        const [avgSalary, dep] = Object.keys(departments).reduce((bestDep, dep) => {
+        const [avgSalary, bestDep] = Object.keys(this.departments).reduce((bestDep, dep) => {
             const [highestAvgSalary] = bestDep;
 
-            const avgSalary = departments[dep].reduce((sum, [, salary]) => sum + salary, 0) / departments[dep].length;
+            const avgSalary = this.departments[dep].sum / this.departments[dep].employees.length;
 
             if (avgSalary > highestAvgSalary) {
                 bestDep = [avgSalary, dep];
@@ -32,9 +40,9 @@ class Company {
             return bestDep;
         }, [-1, '']);
 
-        return departments[dep]
-            .sort(([n, s], [n2, s2]) => s2 - s || n.localeCompare(n2))
-            .reduce((output, [username, salary, position]) => output + `\n${username} ${salary} ${position}`,
-                `Best Department is: ${dep}\nAverage salary: ${avgSalary.toFixed(2)}`);
+        return this.departments[bestDep].employees
+            .sort((a, b) => b.salary - a.salary || a.username.localeCompare(b.username))
+            .reduce((output, {username, salary, position}) => output + `\n${username} ${salary} ${position}`,
+                `Best Department is: ${bestDep}\nAverage salary: ${avgSalary.toFixed(2)}`);
     }
 }
