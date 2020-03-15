@@ -2,6 +2,8 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -20,9 +22,7 @@ var BugTracker = function (_React$Component) {
 
         _this.showForm = function () {
             _this.setState(function (state) {
-                return {
-                    formShown: !state.formShown
-                };
+                return { formShown: !state.formShown };
             });
         };
 
@@ -32,39 +32,115 @@ var BugTracker = function (_React$Component) {
             _this.setState(function (state) {
                 return {
                     bugs: [state.newBug].concat(_toConsumableArray(state.bugs)),
-                    newBug: { description: '', author: '', status: 'open', severity: 0, id: generateId() },
+                    newBug: { description: '', author: '', status: 'open', severity: 0, id: generateId(), editing: false },
                     formShown: false
                 };
             });
         };
 
-        _this.handleDescriptionChange = function (e) {
-            _this.setState({ newBug: Object.assign({}, _this.state.newBug, { description: e.target.value }) });
+        _this.handleDataChange = function (e, prop, bug) {
+            e.persist();
+            var value = e.target.value;
+
+            if (bug) {
+                _this.setState(function (state) {
+                    return {
+                        bugs: state.bugs.map(function (x) {
+                            if (x.id === bug.id) {
+                                return Object.assign({}, x, _defineProperty({}, prop, value));
+                            }
+
+                            return x;
+                        })
+                    };
+                });
+            } else {
+                _this.setState(function (state) {
+                    return { newBug: Object.assign({}, state.newBug, _defineProperty({}, prop, value)) };
+                });
+            }
         };
 
-        _this.handleAuthorChange = function (e) {
-            _this.setState({ newBug: Object.assign({}, _this.state.newBug, { author: e.target.value }) });
+        _this.handleDelete = function (bug) {
+            _this.setState(function (state) {
+                return { bugs: state.bugs.filter(function (x) {
+                        return x.id !== bug.id;
+                    }) };
+            });
         };
 
-        _this.handleStatusChange = function (e) {
-            _this.setState({ newBug: Object.assign({}, _this.state.newBug, { status: e.target.value }) });
+        _this.handleToggleEdit = function (bug) {
+            _this.setState(function (state) {
+                return {
+                    bugs: state.bugs.map(function (x) {
+                        if (x.id === bug.id) {
+                            return Object.assign({}, x, { editing: !x.editing });
+                        }
+
+                        return x;
+                    })
+                };
+            });
         };
 
-        _this.handleSeverityChange = function (e) {
-            _this.setState({ newBug: Object.assign({}, _this.state.newBug, { severity: e.target.value }) });
+        _this.showSortField = function () {
+            _this.setState(function (state) {
+                return { sortFieldShown: !state.sortFieldShown };
+            });
         };
 
-        _this.state = { bugs: [], formShown: false, newBug: { description: '', author: '', status: 'open', severity: 0, id: generateId() } };
+        _this.handleSort = function (e) {
+            e.preventDefault();
+
+            switch (_this.state.criteria) {
+                case 'author':
+                    _this.setState(function (state) {
+                        return {
+                            bugs: [].concat(_toConsumableArray(state.bugs)).sort(function (a, b) {
+                                return a.author.localeCompare(b.author);
+                            }),
+                            sortFieldShown: false
+                        };
+                    });
+                    break;
+                case 'severity':
+                    _this.setState(function (state) {
+                        return {
+                            bugs: [].concat(_toConsumableArray(state.bugs)).sort(function (a, b) {
+                                return a.severity - b.severity;
+                            }),
+                            sortFieldShown: false
+                        };
+                    });
+                    break;
+            }
+        };
+
+        _this.handleCriteriaChange = function (e) {
+            _this.setState({ criteria: e.target.value });
+        };
+
+        _this.state = {
+            bugs: [],
+            formShown: false,
+            newBug: { description: '', author: '', status: 'open', severity: 0, id: generateId(), editing: false },
+            sortFieldShown: false,
+            criteria: 'author'
+        };
         return _this;
     }
 
     _createClass(BugTracker, [{
         key: 'render',
         value: function render() {
+            var _this2 = this;
+
             var _state = this.state,
                 formShown = _state.formShown,
                 newBug = _state.newBug,
-                bugs = _state.bugs;
+                bugs = _state.bugs,
+                sortFieldShown = _state.sortFieldShown,
+                criteria = _state.criteria;
 
 
             return React.createElement(
@@ -83,24 +159,69 @@ var BugTracker = function (_React$Component) {
                         { onClick: this.showForm },
                         formShown ? 'Cancel' : 'Report'
                     ),
+                    React.createElement(
+                        'button',
+                        { onClick: this.showSortField },
+                        sortFieldShown ? 'Cancel' : 'Sort'
+                    ),
                     formShown && React.createElement(BugForm, {
                         onSubmit: this.handleReport,
-                        onDescriptionChange: this.handleDescriptionChange,
-                        onAuthorChange: this.handleAuthorChange,
-                        onStatusChange: this.handleStatusChange,
-                        onSeverityChange: this.handleSeverityChange,
+                        onDescriptionChange: function onDescriptionChange(e) {
+                            return _this2.handleDataChange(e, 'description');
+                        },
+                        onAuthorChange: function onAuthorChange(e) {
+                            return _this2.handleDataChange(e, 'author');
+                        },
+                        onStatusChange: function onStatusChange(e) {
+                            return _this2.handleDataChange(e, 'status');
+                        },
+                        onSeverityChange: function onSeverityChange(e) {
+                            return _this2.handleDataChange(e, 'severity');
+                        },
                         description: newBug.description,
                         author: newBug.author,
                         status: newBug.status,
                         severity: newBug.severity
+                    }),
+                    sortFieldShown && React.createElement(SortField, {
+                        onSubmit: this.handleSort,
+                        onCriteriaChange: this.handleCriteriaChange,
+                        criteria: criteria
                     })
                 ),
                 React.createElement(
                     'div',
                     { id: 'content' },
                     bugs.map(function (bug) {
-                        return React.createElement(Bug, { key: bug.id, description: bug.description, author: bug.author, status: bug.status,
-                            severity: bug.severity });
+                        return React.createElement(Bug, {
+                            key: bug.id,
+                            description: bug.description,
+                            author: bug.author,
+                            status: bug.status,
+                            severity: bug.severity,
+                            onDelete: function onDelete() {
+                                return _this2.handleDelete(bug);
+                            },
+                            toggleEdit: function toggleEdit() {
+                                return _this2.handleToggleEdit(bug);
+                            },
+                            editing: bug.editing,
+                            onEditSubmit: function onEditSubmit() {
+                                return _this2.handleToggleEdit(bug);
+                            },
+                            onDescriptionChange: function onDescriptionChange(e) {
+                                return _this2.handleDataChange(e, 'description', bug);
+                            },
+                            onAuthorChange: function onAuthorChange(e) {
+                                return _this2.handleDataChange(e, 'author', bug);
+                            },
+                            onStatusChange: function onStatusChange(e) {
+                                return _this2.handleDataChange(e, 'status', bug);
+                            },
+                            onSeverityChange: function onSeverityChange(e) {
+                                return _this2.handleDataChange(e, 'severity', bug);
+                            }
+                        });
                     })
                 )
             );
@@ -116,35 +237,80 @@ function Bug(_ref) {
     var description = _ref.description,
         author = _ref.author,
         status = _ref.status,
-        severity = _ref.severity;
+        severity = _ref.severity,
+        onDelete = _ref.onDelete,
+        toggleEdit = _ref.toggleEdit,
+        editing = _ref.editing,
+        onEditSubmit = _ref.onEditSubmit,
+        onDescriptionChange = _ref.onDescriptionChange,
+        onAuthorChange = _ref.onAuthorChange,
+        onStatusChange = _ref.onStatusChange,
+        onSeverityChange = _ref.onSeverityChange;
 
     return React.createElement(
         'div',
         { className: 'report' },
-        React.createElement(
+        editing ? React.createElement(
             'div',
-            { className: 'body' },
+            null,
+            React.createElement(BugForm, {
+                onSubmit: onEditSubmit,
+                onDescriptionChange: onDescriptionChange,
+                onAuthorChange: onAuthorChange,
+                onStatusChange: onStatusChange,
+                onSeverityChange: onSeverityChange,
+                description: description,
+                author: author,
+                status: status,
+                severity: severity
+            }),
             React.createElement(
-                'p',
-                null,
-                description
+                'button',
+                { onClick: toggleEdit },
+                'Cancel'
             )
-        ),
-        React.createElement(
+        ) : React.createElement(
             'div',
-            { className: 'title' },
+            null,
             React.createElement(
-                'span',
-                { className: 'author' },
-                'Submitted by: ',
-                author
+                'div',
+                { className: 'body' },
+                React.createElement(
+                    'p',
+                    null,
+                    description
+                )
             ),
             React.createElement(
-                'span',
-                { className: 'status' },
-                bugStatuses[status],
-                ' | ',
-                severity
+                'div',
+                { className: 'title' },
+                React.createElement(
+                    'span',
+                    { className: 'author' },
+                    'Submitted by: ',
+                    author
+                ),
+                React.createElement(
+                    'span',
+                    { className: 'status' },
+                    bugStatuses[status],
+                    ' | ',
+                    severity
+                )
+            ),
+            React.createElement(
+                'div',
+                { className: 'bug-actions' },
+                React.createElement(
+                    'button',
+                    { onClick: toggleEdit },
+                    'Edit'
+                ),
+                React.createElement(
+                    'button',
+                    { onClick: onDelete },
+                    'Delete'
+                )
             )
         )
     );
@@ -205,6 +371,37 @@ function BugForm(_ref2) {
             null,
             'Severity:',
             React.createElement('input', { onChange: onSeverityChange, value: severity, type: 'number', name: 'severity' })
+        ),
+        React.createElement('input', { type: 'submit', value: 'Submit' })
+    );
+}
+
+function SortField(_ref3) {
+    var onSubmit = _ref3.onSubmit,
+        onCriteriaChange = _ref3.onCriteriaChange,
+        criteria = _ref3.criteria;
+
+    return React.createElement(
+        'form',
+        { onSubmit: onSubmit },
+        React.createElement(
+            'label',
+            null,
+            'Sort by:',
+            React.createElement(
+                'select',
+                { onChange: onCriteriaChange, value: criteria },
+                React.createElement(
+                    'option',
+                    { value: 'author' },
+                    'Author'
+                ),
+                React.createElement(
+                    'option',
+                    { value: 'severity' },
+                    'Severity'
+                )
+            )
         ),
         React.createElement('input', { type: 'submit', value: 'Submit' })
     );
