@@ -15,6 +15,9 @@ function attachEvents() {
                     content: content.value
                 })
             });
+
+        author.value = '';
+        content.value = '';
     }
 
     function onRefreshClick() {
