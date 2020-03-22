@@ -6,30 +6,28 @@ function attachEvents() {
     document.getElementById('btnLoad').addEventListener('click', onLoadBtnClick);
     document.getElementById('btnCreate').addEventListener('click', onCreatBtnClick);
 
-    function onLoadBtnClick() {
-        fetch('https://phonebook-nakov.firebaseio.com/phonebook.json')
-            .then(x => x.json())
-            .then(x => {
-                if (phonebook.innerHTML) {
-                    phonebook.innerHTML = '';
-                }
+    async function onLoadBtnClick() {
+        const contacts = await fetch('https://phonebook-nakov.firebaseio.com/phonebook.json').then(x => x.json());
 
-                Object.entries(x).forEach(([id, {person, phone}]) => {
-                    const li = document.createElement('li');
-                    li.textContent = `${person}: ${phone}`;
+        if (phonebook.innerHTML) {
+            phonebook.innerHTML = '';
+        }
 
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.textContent = 'Delete';
+        Object.entries(contacts).forEach(([id, {person, phone}]) => {
+            const li = document.createElement('li');
+            li.textContent = `${person}: ${phone}`;
 
-                    deleteBtn.addEventListener('click', () => {
-                        fetch(`https://phonebook-nakov.firebaseio.com/phonebook/${id}.json`, {method: 'DELETE'});
-                        li.remove()
-                    });
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
 
-                    li.appendChild(deleteBtn);
-                    phonebook.appendChild(li);
-                })
-            })
+            deleteBtn.addEventListener('click', () => {
+                fetch(`https://phonebook-nakov.firebaseio.com/phonebook/${id}.json`, {method: 'DELETE'})
+                    .then(() => li.remove());
+            });
+
+            li.appendChild(deleteBtn);
+            phonebook.appendChild(li);
+        })
     }
 
     function onCreatBtnClick() {
@@ -40,10 +38,11 @@ function attachEvents() {
                     person: newPersonName.value,
                     phone: newPersonPhone.value
                 })
-            });
-
-        newPersonName.value = '';
-        newPersonPhone.value = '';
+            })
+            .then(() => {
+                newPersonName.value = '';
+                newPersonPhone.value = '';
+            })
     }
 }
 

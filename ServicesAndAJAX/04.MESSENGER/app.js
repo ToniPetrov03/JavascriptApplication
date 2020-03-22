@@ -14,10 +14,11 @@ function attachEvents() {
                     author: author.value,
                     content: content.value
                 })
+            })
+            .then(() => {
+                author.value = '';
+                content.value = '';
             });
-
-        author.value = '';
-        content.value = '';
     }
 
     function onRefreshClick() {
