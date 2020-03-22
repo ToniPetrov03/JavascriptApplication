@@ -1,5 +1,5 @@
 function attachEvents() {
-    const messages = document.getElementById('messages');
+    const messagesContainer = document.getElementById('messages');
     const author = document.getElementById('author');
     const content = document.getElementById('content');
 
@@ -21,12 +21,10 @@ function attachEvents() {
             });
     }
 
-    function onRefreshClick() {
-        fetch('https://rest-messanger.firebaseio.com/messanger.json')
-            .then(x => x.json())
-            .then(x => {
-                messages.textContent = Object.values(x).map(({author, content}) => `${author}: ${content}`).join('\n')
-            })
+    async function onRefreshClick() {
+        const messages = await fetch('https://rest-messanger.firebaseio.com/messanger.json').then(x => x.json());
+
+        messagesContainer.textContent = Object.values(messages).map(({author, content}) => `${author}: ${content}`).join('\n')
     }
 }
 

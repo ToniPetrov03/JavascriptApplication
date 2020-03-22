@@ -6,24 +6,23 @@ function solve() {
     let nextStop = 'depot';
     let currStop = '';
 
-    function depart() {
-        fetch(`https://judgetests.firebaseio.com/schedule/${nextStop}.json`)
-            .then(x => x.json())
-            .then(x => {
-                info.textContent = `Next stop ${x.name}`;
+    async function depart() {
+        try {
+            const stop = await fetch(`https://judgetests.firebaseio.com/schedule/${nextStop}.json`).then(x => x.json());
 
-                departButton.disabled = true;
-                departArrive.disabled = false;
+            info.textContent = `Next stop ${stop.name}`;
 
-                nextStop = x.next;
-                currStop = x.name;
-            })
-            .catch(() => {
-                info.textContent = 'Error';
+            departButton.disabled = true;
+            departArrive.disabled = false;
 
-                departButton.disabled = true;
-                departArrive.disabled = true;
-            })
+            nextStop = stop.next;
+            currStop = stop.name;
+        } catch {
+            info.textContent = 'Error';
+
+            departButton.disabled = true;
+            departArrive.disabled = true;
+        }
     }
 
     function arrive() {
