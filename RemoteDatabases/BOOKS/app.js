@@ -21,11 +21,8 @@ async function onLoadClick() {
             </tr>`;
 
         setTimeout(() => {
-            document.getElementById(`edit-${id}`).addEventListener('click', () => onEditClick(id, title, author, isbn))
-        }, 0);
-
-        setTimeout(() => {
-            document.getElementById(`delete-${id}`).addEventListener('click', () => onDeleteClick(id))
+            document.getElementById(`edit-${id}`).addEventListener('click', () => onEditClick(id, title, author, isbn));
+            document.getElementById(`delete-${id}`).addEventListener('click', () => onDeleteClick(id));
         }, 0);
     });
 }
@@ -82,6 +79,10 @@ function onEditClick(id, title, author, isbn) {
 }
 
 function onDeleteClick(id) {
-    fetch(`https://booksdb-bd267.firebaseio.com/books/${id}.json`, {method: 'DELETE'})
-        .then(() => onLoadClick());
+    const confirmed = confirm('Are you sure?');
+
+    if (confirmed) {
+        fetch(`https://booksdb-bd267.firebaseio.com/books/${id}.json`, {method: 'DELETE'})
+            .then(() => onLoadClick());
+    }
 }

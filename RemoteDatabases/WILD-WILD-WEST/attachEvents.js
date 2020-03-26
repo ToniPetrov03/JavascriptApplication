@@ -37,18 +37,13 @@ function attachEvents() {
 
             setTimeout(() => {
                 document.getElementById(`play-${id}`).addEventListener('click', () =>
-                    onPlayClick(id, {name, money, bullets})
-                )
-            });
+                    onPlayClick(id, {name, money, bullets}));
 
-            setTimeout(() => {
                 document.getElementById(`delete-${id}`).addEventListener('click', () =>
-                    onDeleteClick(id))
+                    onDeleteClick(id));
             });
         });
     }
-
-    (load)();
 
     function onAddPlayerClick() {
         fetch('https://booksdb-bd267.firebaseio.com/players.json',
@@ -75,6 +70,11 @@ function attachEvents() {
 
         saveBtn.addEventListener('click', () => onSaveClick(id, player));
         reloadBtn.addEventListener('click', () => onReloadClick(id, player));
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyR') {
+                onReloadClick(id, player)
+            }
+        });
     }
 
     function onDeleteClick(id) {
@@ -107,4 +107,6 @@ function attachEvents() {
                 body: JSON.stringify({name: player.name, money: player.money -= 60, bullets: player.bullets += 6})
             })
     }
+
+    load();
 }
