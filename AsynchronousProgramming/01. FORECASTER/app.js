@@ -21,7 +21,7 @@ function attachEvents() {
         try {
             const locations = await fetch('https://judgetests.firebaseio.com/locations.json').then((x) => x.json());
 
-            const code = locations.find(({name}) => name === inputLocation.value).code;
+            const {code} = locations.find(({name}) => name === inputLocation.value);
 
             const todayForecast = await fetch(`https://judgetests.firebaseio.com/forecast/today/${code}.json`).then((x) => x.json());
             const threeDayForecast = await fetch(`https://judgetests.firebaseio.com/forecast/upcoming/${code}.json`).then((x) => x.json());

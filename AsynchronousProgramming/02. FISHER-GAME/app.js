@@ -37,9 +37,6 @@ function attachEvents() {
 
             setTimeout(() => {
                 document.getElementById(`update-${id}`).addEventListener('click', () => onUpdateClick(id));
-            }, 0);
-
-            setTimeout(() => {
                 document.getElementById(`delete-${id}`).addEventListener('click', () => onDeleteClick(id));
             }, 0);
         })
