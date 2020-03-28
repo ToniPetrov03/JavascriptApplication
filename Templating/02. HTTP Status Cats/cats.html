@@ -13,14 +13,14 @@
 <section id="allCats"></section>
 <script type="text/x-handlebars-template" id="cat-template">
     <ul>
-        {{#each cats}}
+        {{#each cats as |cat|}}
             <li>
-                <img src="images/{{this.imageLocation}}.jpg" width="250" height="250" alt="Card image cap">
+                <img src="images/{{cat.imageLocation}}.jpg" width="250" height="250" alt="Card image cap">
                 <div class="info">
                     <button class="showBtn" onclick="onShowClick(this)">Show status code</button>
-                    <div class="status" style="display: none" id="{{this.id}}">
-                        <h4>Status Code: {{this.statusCode}}</h4>
-                        <p>{{this.statusMessage}}</p>
+                    <div class="status" style="display: none" id="{{cat.id}}">
+                        <h4>Status Code: {{cat.statusCode}}</h4>
+                        <p>{{cat.statusMessage}}</p>
                     </div>
                 </div>
             </li>

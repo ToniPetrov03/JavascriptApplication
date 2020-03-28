@@ -11,13 +11,13 @@
 </section>
 <script type="text/x-handlebars-template" id="monkey-template">
     <div class="monkeys">
-        {{#each monkeys}}
+        {{#each monkeys as |monkey|}}
             <div class="monkey">
-                <h2>{{this.name}}</h2>
-                <img src="{{this.image}}">
+                <h2>{{monkey.name}}</h2>
+                <img src="{{monkey.image}}">
                 <button onclick="onInfoClick(this)">Info</button>
-                <p style="display: none" id="{{this.id}}">
-                    {{this.info}}
+                <p style="display: none" id="{{monkey.id}}">
+                    {{monkey.info}}
                 </p>
             </div>
         {{/each}}
