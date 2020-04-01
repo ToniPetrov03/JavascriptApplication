@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link rel="stylesheet" type="text/css" href="css/team.css">
+    <link rel="stylesheet" type="text/css" href="css/details.css">
+    <link rel="stylesheet" type="text/css" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../node_modules/handlebars/dist/handlebars.min.js"></script>
+    <script src="../node_modules/sammy/lib/min/sammy-0.7.6.min.js"></script>
+    <script src="../node_modules/sammy/lib/min/plugins/sammy.handlebars-0.7.6.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-app.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/7.13.1/firebase-auth.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/7.13.1/firebase-database.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDBgJxMRUXX1-q4VhlG7ty4HXABb7ZO2AA",
+            authDomain: "teammanagerdb-7567c.firebaseapp.com",
+            databaseURL: "https://teammanagerdb-7567c.firebaseio.com",
+            projectId: "teammanagerdb-7567c",
+            storageBucket: "teammanagerdb-7567c.appspot.com",
+            messagingSenderId: "569217432462",
+            appId: "1:569217432462:web:54e1d4d2d005de8d18c2df"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <title>Team Managers App</title>
+</head>
+<body>
+<div id="infoBox" class="notification" disabled></div>
+<div id="errorBox" class="notification" disabled></div>
+<div id="main">
+</div>
+<script type="module" src="scripts/app.js"></script>
+</body>
+</html>
