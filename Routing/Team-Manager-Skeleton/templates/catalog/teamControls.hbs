@@ -1,0 +1,8 @@
+{{#if isAuthor}}
+    <a href="#/edit/{{teamId}}" class="btn btn-default">Edit Info</a>
+{{/if}}
+{{#if isOnTeam}}
+    <button id="leave-btn" class="btn btn-default">Leave Team</button>
+{{else if hasNoTeam}}
+    <button id="join-btn" class="btn btn-default">Join Team</button>
+{{/if}}
