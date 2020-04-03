@@ -1,6 +1,9 @@
 import {createFormEntity} from './form-helpers.js';
+import {createNotification} from './notifications-helper.js';
 
 // initialize the application
+
+let notification;
 
 const app = Sammy('#main', function () {
     // include a plugin
@@ -32,6 +35,13 @@ const app = Sammy('#main', function () {
             }
         }
     });
+
+    notification = createNotification({
+        duration: 5000,
+        successSelector: '#successBox',
+        loadingSelector: '#loadingBox',
+        errorSelector: '#errorBox',
+    })
 });
 
 // start the application
@@ -77,6 +87,8 @@ async function registerViewHandler() {
     formRef.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        notification.loading();
+
         const form = createFormEntity(formRef, ['email', 'password', 'rePassword']);
 
         const {email, password, rePassword} = form.getValue();
@@ -86,6 +98,9 @@ async function registerViewHandler() {
         const {user} = await firebase.auth().createUserWithEmailAndPassword(email, password);
 
         const token = await firebase.auth().currentUser.getIdToken();
+
+        notification.clearLoading();
+        notification.success('Successfully registered user.');
 
         sessionStorage.setItem('token', token);
         sessionStorage.setItem('email', user.email);
