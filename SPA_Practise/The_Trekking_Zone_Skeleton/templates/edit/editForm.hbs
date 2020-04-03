@@ -1,0 +1,23 @@
+<form {{trek}} id="edit-form" class="create-trek"  method="post">
+    <div class="form-label-group">
+        <input type="text" name="location" class="form-control" value="{{trek.location}}" required="">
+        <label for="inputTrekName">Location</label>
+    </div>
+
+    <div class="form-label-group">
+        <input type="text" name="dateTime" class="form-control" value="{{trek.dateTime}}" required="">
+        <label for="inputTrekDate">Date</label>
+    </div>
+
+    <div class="form-label-group">
+        <textarea type="text" name="description" class="form-control" value="{{trek.description}}" required=""></textarea>
+        <label for="inputTrekDescription">Description</label>
+    </div>
+
+    <div class="form-label-group">
+        <input type="text" name="imageURL" class="form-control" value="{{trek.imageURL}}" required="">
+        <label for="inputTrekImage">Image</label>
+    </div>
+
+    <button class="btn btn-lg btn-dark btn-block" type="submit">Make a wish =)</button>
+</form>
