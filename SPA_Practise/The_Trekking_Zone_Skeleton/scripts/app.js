@@ -1,32 +1,14 @@
 import {createFormEntity} from './form-helpers.js';
 import {createNotification} from './notifications-helper.js';
 
-let notification;
+const notification = createNotification({
+    duration: 5000,
+    successSelector: '#successBox',
+    loadingSelector: '#loadingBox',
+    errorSelector: '#errorBox',
+});
 
 async function init() {
-    //this.use('Handlebars', 'hbs');
-
-    // this.get('', async function () {
-    //     this.partials = {
-    //         header: await this.load('./templates/header.hbs'),
-    //         notifications: await this.load('./templates/notifications.hbs'),
-    //         footer: await this.load('./templates/footer.hbs'),
-    //     };
-    //
-    //     this.email = sessionStorage.getItem('email');
-    //     this.loggedIn = !!sessionStorage.getItem('token');
-    //
-    //     await this.partial('./templates/index.hbs');
-    //
-    notification = createNotification({
-        duration: 5000,
-        successSelector: '#successBox',
-        loadingSelector: '#loadingBox',
-        errorSelector: '#errorBox',
-    });
-    // });
-
-
     const templates = await Promise.all([
         fetch('./templates/index.hbs').then(r => r.text()),
         fetch('./templates/header.hbs').then(r => r.text()),
@@ -87,7 +69,6 @@ init();
 async function homeViewHandler() {
     const token = sessionStorage.getItem('token');
     this.loggedIn = !!sessionStorage.getItem('token');
-
 
     if (!!token) {
         const treks = await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=${token}`).then(res => res.json());
