@@ -1,67 +1,93 @@
 import {createFormEntity} from './form-helpers.js';
 import {createNotification} from './notifications-helper.js';
 
-// initialize the application
-
 let notification;
 
-const app = Sammy('#main', function () {
-    // include a plugin
+async function init() {
+    //this.use('Handlebars', 'hbs');
 
-    this.use('Handlebars', 'hbs');
-
-    // define a 'route'
-
-    this.get('#/', homeViewHandler);
-    this.get('#/home', homeViewHandler);
-    this.get('#/register', registerViewHandler);
-    this.post('#/register', () => false);
-    this.get('#/login', loginViewHandler);
-    this.post('#/login', () => false);
-    this.get('#/logout', logoutHandler);
-    this.get('#/create', createViewHandler);
-    this.post('#/create', () => false);
-    this.get('#/details/:id', detailsViewHandler);
-    this.get('#/edit/:id', editViewHandler);
-    this.post('#/edit/:id', () => false);
-
-    firebase.auth().onAuthStateChanged((user) => {
-        if (!user) {
-            if (sessionStorage.getItem('token')) {
-                sessionStorage.clear();
-                this.setLocation(['#/login']);
-            } else {
-                this.setLocation(['#/']);
-            }
-        }
-    });
-
+    // this.get('', async function () {
+    //     this.partials = {
+    //         header: await this.load('./templates/header.hbs'),
+    //         notifications: await this.load('./templates/notifications.hbs'),
+    //         footer: await this.load('./templates/footer.hbs'),
+    //     };
+    //
+    //     this.email = sessionStorage.getItem('email');
+    //     this.loggedIn = !!sessionStorage.getItem('token');
+    //
+    //     await this.partial('./templates/index.hbs');
+    //
     notification = createNotification({
         duration: 5000,
         successSelector: '#successBox',
         loadingSelector: '#loadingBox',
         errorSelector: '#errorBox',
-    })
-});
+    });
+    // });
 
-// start the application
 
-app.run('#/');
+    const templates = await Promise.all([
+        fetch('./templates/index.hbs').then(r => r.text()),
+        fetch('./templates/header.hbs').then(r => r.text()),
+        fetch('./templates/notifications.hbs').then(r => r.text()),
+        fetch('./templates/footer.hbs').then(r => r.text()),
+    ]);
 
-async function applyCommon() {
-    this.partials = {
-        header: await this.load('./templates/common/header.hbs'),
-        footer: await this.load('./templates/common/footer.hbs'),
-    };
+    const [index, header, notifications, footer] = templates.map(x => Handlebars.compile(x));
 
-    this.email = sessionStorage.getItem('email');
-    this.loggedIn = !!sessionStorage.getItem('token');
+    Handlebars.registerPartial('header', header);
+    Handlebars.registerPartial('notifications', notifications);
+    Handlebars.registerPartial('footer', footer);
+
+    document.getElementById('appContainer').innerHTML = index({
+        email: sessionStorage.getItem('email'),
+        loggedIn: !!sessionStorage.getItem('token')
+    });
+
+    const main = Sammy('#main', async function () {
+        this.use('Handlebars', 'hbs');
+
+        this.get('#/', homeViewHandler);
+        this.get('#/home', homeViewHandler);
+        this.get('#/register', registerViewHandler);
+        this.post('#/register', () => false);
+        this.get('#/login', loginViewHandler);
+        this.post('#/login', () => false);
+        this.get('#/logout', logoutHandler);
+        this.get('#/create', createViewHandler);
+        this.post('#/create', () => false);
+        this.get('#/details/:id', detailsViewHandler);
+        this.get('#/edit/:id', editViewHandler);
+        this.post('#/edit/:id', () => false);
+        this.get('#/profile', profileViewHandler);
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                const token = await firebase.auth().currentUser.getIdToken();
+
+                sessionStorage.setItem('token', token);
+                sessionStorage.setItem('email', user.email);
+            } else {
+                if (sessionStorage.getItem('token')) {
+                    sessionStorage.clear();
+                    this.setLocation(['#/login']);
+                } else {
+                    this.setLocation(['#/']);
+                }
+            }
+        });
+    });
+
+    main.run('#/');
 }
 
-async function homeViewHandler() {
-    await applyCommon.call(this);
+init();
 
+async function homeViewHandler() {
     const token = sessionStorage.getItem('token');
+    this.loggedIn = !!sessionStorage.getItem('token');
+
 
     if (!!token) {
         const treks = await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=${token}`).then(res => res.json());
@@ -69,18 +95,18 @@ async function homeViewHandler() {
         this.hasTrek = !!treks;
 
         if (this.hasTrek) {
-            this.treks = Object.entries(treks).map(([id, {location, imageURL}]) => ({id, location, imageURL}));
+            this.treks = Object
+                .entries(treks)
+                .map(([id, {location, imageURL, likes}]) => ({id, location, imageURL, likes}))
+                .sort((a, b) => b.likes - a.likes);
         }
     }
 
-    await this.partial('./templates/home/home.hbs')
+    await this.partial('./templates/home.hbs')
 }
 
 async function registerViewHandler() {
-    await applyCommon.call(this);
-    this.partials.registerForm = await this.load('./templates/register/registerForm.hbs');
-
-    await this.partial('./templates/register/pageRegister.hbs');
+    await this.partial('./templates/registerForm.hbs');
 
     const formRef = document.getElementById('register-form');
 
@@ -89,66 +115,72 @@ async function registerViewHandler() {
 
         notification.loading();
 
-        const form = createFormEntity(formRef, ['email', 'password', 'rePassword']);
+        try {
+            const form = createFormEntity(formRef, ['email', 'password', 'rePassword']);
 
-        const {email, password, rePassword} = form.getValue();
+            const {email, password, rePassword} = form.getValue();
 
-        if (password !== rePassword) return;
+            if (password !== rePassword) throw new Error('Passwords not matching.');
 
-        const {user} = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            await firebase.auth().createUserWithEmailAndPassword(email, password);
 
-        const token = await firebase.auth().currentUser.getIdToken();
+            notification.clearLoading();
+            notification.success('Successfully registered user.');
 
-        notification.clearLoading();
-        notification.success('Successfully registered user.');
-
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('email', user.email);
-
-        this.redirect(['#/home'])
+            this.redirect(['#/home'])
+        } catch (e) {
+            notification.clearLoading();
+            notification.error(e);
+        }
     });
 }
 
 async function loginViewHandler() {
-    await applyCommon.call(this);
-    this.partials.loginForm = await this.load('./templates/login/loginForm.hbs');
-
-    await this.partial('./templates/login/loginPage.hbs');
+    await this.partial('./templates/loginForm.hbs');
 
     const formRef = document.getElementById('login-form');
 
     formRef.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const form = createFormEntity(formRef, ['email', 'password']);
+        notification.loading();
 
-        const {email, password} = form.getValue();
+        try {
+            const form = createFormEntity(formRef, ['email', 'password']);
 
-        const {user} = await firebase.auth().signInWithEmailAndPassword(email, password);
+            const {email, password} = form.getValue();
 
-        const token = await firebase.auth().currentUser.getIdToken();
+            await firebase.auth().signInWithEmailAndPassword(email, password);
 
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('email', user.email);
+            notification.clearLoading();
+            notification.success('Successfully logged user.');
 
-        this.redirect(['#/home'])
+            this.redirect(['#/home'])
+        } catch (e) {
+            notification.clearLoading();
+            notification.error(e);
+        }
     })
 }
 
-function logoutHandler() {
-    firebase.auth().signOut();
+async function logoutHandler() {
+    notification.loading();
+
+    await firebase.auth().signOut();
+
+    notification.clearLoading();
+    notification.success('Logout successful.');
 }
 
 async function createViewHandler() {
-    await applyCommon.call(this);
-    this.partials.createForm = await this.load('./templates/create/createForm.hbs');
-
-    await this.partial('./templates/create/createPage.hbs');
+    await this.partial('./templates/createForm.hbs');
 
     const formRef = document.getElementById('create-form');
 
     formRef.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        notification.loading();
 
         const form = createFormEntity(formRef, ['location', 'dateTime', 'description', 'imageURL']);
 
@@ -156,7 +188,7 @@ async function createViewHandler() {
         const author = sessionStorage.getItem('email');
         const trek = form.getValue();
 
-        await fetch('https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=' + token,
+        const trekRes = await fetch('https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=' + token,
             {
                 method: 'POST',
                 body: JSON.stringify({
@@ -167,14 +199,14 @@ async function createViewHandler() {
             }
         ).then(res => res.json());
 
-        this.redirect(['#/home'])
+        notification.clearLoading();
+        notification.success('Trek created successfully.');
+
+        this.redirect(['#/details/' + trekRes.name])
     })
 }
 
 async function detailsViewHandler(req) {
-    await applyCommon.call(this);
-    this.partials.details = await this.load('./templates/details/details.hbs');
-
     const id = req.params.id;
     const token = sessionStorage.getItem('token');
 
@@ -183,12 +215,17 @@ async function detailsViewHandler(req) {
     this.trek = {...trek, id};
     this.isAuthor = trek.author === sessionStorage.getItem('email');
 
-    await this.partial('./templates/details/detailsPage.hbs');
+    await this.partial('./templates/details.hbs');
 
     const closeBtn = document.getElementById('close-' + id);
 
     closeBtn && closeBtn.addEventListener('click', async () => {
+        notification.loading();
+
         await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks/${id}.json?auth=${token}`, {method: 'DELETE'});
+
+        notification.clearLoading();
+        notification.success('You closed the trek successfully.');
 
         this.app.refresh();
     });
@@ -196,6 +233,8 @@ async function detailsViewHandler(req) {
     const likeBtn = document.getElementById('like-' + id);
 
     likeBtn && likeBtn.addEventListener('click', async () => {
+        notification.loading();
+
         await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks/${id}.json?auth=${token}`,
             {
                 method: 'PUT',
@@ -206,22 +245,22 @@ async function detailsViewHandler(req) {
             }
         );
 
+        notification.clearLoading();
+        notification.success('You liked the trek successfully.');
+
         this.app.refresh();
     });
 }
 
 async function editViewHandler(req) {
-    await applyCommon.call(this);
-    this.partials.editForm = await this.load('./templates/edit/editForm.hbs');
-
     const id = req.params.id;
     const token = sessionStorage.getItem('token');
 
     const trek = await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks/${id}.json?auth=${token}`).then(res => res.json());
 
-    this.trek = trek;
+    this.trek = {...trek, id};
 
-    await this.partial('./templates/edit/editPage.hbs');
+    await this.partial('./templates/editForm.hbs');
 
     const formRef = document.getElementById('edit-form');
     const form = createFormEntity(formRef, ['location', 'dateTime', 'description', 'imageURL']);
@@ -230,6 +269,8 @@ async function editViewHandler(req) {
 
     formRef.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        notification.loading();
 
         const {location, dateTime, description, imageURL} = form.getValue();
 
@@ -242,6 +283,24 @@ async function editViewHandler(req) {
             }
         ).then(res => res.json());
 
+        notification.clearLoading();
+        notification.success('Trek edited successfully.');
+
         this.redirect(['#/details/' + id])
     })
+}
+
+async function profileViewHandler() {
+    const email = sessionStorage.getItem('email');
+    const token = sessionStorage.getItem('token');
+
+    const treks = await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=${token}`).then(res => res.json());
+
+    const organizedTreks = Object.values(treks).filter(({author, location}) => author === email);
+
+    this.email = email;
+    this.numOrganizedTreks = organizedTreks.length;
+    this.organizedTreks = organizedTreks;
+
+    await this.partial('./templates/profile.hbs');
 }

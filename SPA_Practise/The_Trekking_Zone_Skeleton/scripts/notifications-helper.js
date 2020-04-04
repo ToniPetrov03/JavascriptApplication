@@ -5,7 +5,6 @@ export const createNotification = (notConfig) => {
         toast.style.display = 'block';
 
         setTimeout(() => {
-            console.log('here')
             toast.style.display = 'none';
         }, notConfig.duration);
     };
