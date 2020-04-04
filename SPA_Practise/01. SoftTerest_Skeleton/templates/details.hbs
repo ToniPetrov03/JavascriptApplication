@@ -1,4 +1,5 @@
-<div {{idea}} class="container home some">
+{{log idea}}
+<div class="container home some">
     <img class="det-img" src="{{idea.imageURL}}"/>
     <div class="desc">
         <h2 class="display-5">{{idea.title}}</h2>
@@ -10,8 +11,8 @@
         <p class="infoType">Comments:</p>
         <ul>
             {{#if hasComment}}
-                {{#each idea.comments as |comment|}}
-                    <li class="comment">{{comment.email}}: {{comment.comment}}</li>
+                {{#each idea.comments as |commentInfo|}}
+                    <li class="comment">{{commentInfo.email}}: {{commentInfo.comment}}</li>
                 {{/each}}
             {{else}}
                 <li class="comment">No comments yet :(</li>
@@ -20,13 +21,11 @@
     </div>
     {{#if isAuthor}}
         <div class="text-center">
-            <a id="delete-{{idea.id}}" class="btn detb" href="#/dashboard">Delete</a>
+            <a id="delete-{{idea.id}}" class="btn detb" href="#/">Delete</a>
         </div>
     {{else}}
-        <form class="text-center" action="#/details/{{idea.id}}">
-            <textarea class="textarea-det" name="newComment" id="comment-{{idea.id}}"></textarea>
-            <button id="commentBtn-{{idea.id}}" type="submit" class="btn detb">Comment</button>
-            <a id="like-{{idea.id}}" class="btn detb" href="#/details/{{idea.id}}">Like</a>
-        </form>
+        <textarea class="textarea-det" name="newComment" id="comment-{{idea.id}}"></textarea>
+        <button id="commentBtn-{{idea.id}}" type="submit" class="btn detb">Comment</button>
+        <button id="like-{{idea.id}}" class="btn detb">Like</button>
     {{/if}}
 </div>

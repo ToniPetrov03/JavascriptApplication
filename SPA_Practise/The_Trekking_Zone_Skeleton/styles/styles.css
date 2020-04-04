@@ -183,9 +183,13 @@ form label{
 /* ------------------------------------------------------------------------------------------------------------------------ */
 
 #successBox, #loadingBox, #errorBox{
-display: none;
+/*display: none;*/
 
 margin-bottom: 2%;
+}
+
+#loadingBox{
+    display: none;
 }
 
 nav{

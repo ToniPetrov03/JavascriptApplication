@@ -3,9 +3,8 @@ import {createNotification} from './notifications-helper.js';
 
 const notification = createNotification({
     duration: 5000,
-    successSelector: '#successBox',
+    container: '#notifications',
     loadingSelector: '#loadingBox',
-    errorSelector: '#errorBox',
 });
 
 async function init() {
@@ -45,20 +44,20 @@ async function init() {
         this.get('#/profile', profileViewHandler);
 
         firebase.auth().onAuthStateChanged(async (user) => {
-            if (user) {
+            if (user && !sessionStorage.getItem('token')) {
+                // logged in
+
                 const token = await firebase.auth().currentUser.getIdToken();
 
                 sessionStorage.setItem('token', token);
                 sessionStorage.setItem('email', user.email);
 
                 this.setLocation(['#/'])
-            } else {
-                if (sessionStorage.getItem('token')) {
-                    sessionStorage.clear();
-                    this.setLocation(['#/login']);
-                } else {
-                    this.setLocation(['#/']);
-                }
+            } else if (!user && sessionStorage.getItem('token')) {
+                // logged out
+
+                sessionStorage.clear();
+                this.setLocation(['#/login']);
             }
 
             renderHeader();
@@ -72,7 +71,7 @@ init();
 
 async function homeViewHandler() {
     const token = sessionStorage.getItem('token');
-    this.loggedIn = !!sessionStorage.getItem('token');
+    this.loggedIn = !!token;
 
     if (!!token) {
         const treks = await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=${token}`).then(res => res.json());

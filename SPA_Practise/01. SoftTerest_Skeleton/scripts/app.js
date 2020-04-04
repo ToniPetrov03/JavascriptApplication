@@ -1,146 +1,167 @@
 import {createFormEntity} from './form-helpers.js';
+import {createNotification} from './notifications-helper.js';
 
-// initialize the application
-
-const app = Sammy('#main', function () {
-    // include a plugin
-
-    this.use('Handlebars', 'hbs');
-
-    // define a 'route'
-
-    this.get('#/', homeViewHandler);
-    this.get('#/home', homeViewHandler);
-    this.get('#/register', registerViewHandler);
-    this.post('#/register', () => false);
-    this.get('#/login', loginViewHandler);
-    this.post('#/login', () => false);
-    this.get('#/logout', logoutHandler);
-    this.get('#/dashboard', dashboardViewHandler);
-    this.get('#/create', createViewHandler);
-    this.post('#/create', () => false);
-    this.get('#/details/:id', detailsViewHandler);
-    this.post('#/details/:id', () => false);
-
-    firebase.auth().onAuthStateChanged((user) => {
-        if (!user) {
-            if (sessionStorage.getItem('token')) {
-                sessionStorage.clear();
-                this.setLocation(['#/login']);
-            } else {
-                this.setLocation(['#/']);
-            }
-        }
-    });
+const notification = createNotification({
+    duration: 5000,
+    container: '#notifications',
+    loadingSelector: '#loadingBox',
 });
 
-// start the application
+async function init() {
+    const templates = await Promise.all([
+        fetch('./templates/index.hbs').then(r => r.text()),
+        fetch('./templates/header.hbs').then(r => r.text()),
+        fetch('./templates/notifications.hbs').then(r => r.text()),
+        fetch('./templates/footer.hbs').then(r => r.text()),
+    ]);
 
-app.run('#/');
+    const [index, header, notifications, footer] = templates.map(x => Handlebars.compile(x));
 
-async function applyCommon() {
-    this.partials = {
-        header: await this.load('./templates/common/header.hbs'),
-        footer: await this.load('./templates/common/footer.hbs'),
-    };
+    Handlebars.registerPartial('notifications', notifications);
+    Handlebars.registerPartial('footer', footer);
 
-    this.loggedIn = !!sessionStorage.getItem('token');
+    document.getElementById('appContainer').innerHTML = index();
 
-    this.hrefImage = this.loggedIn ? '#/dashboard' : '#/home'
+    const renderHeader = () => document.getElementById('header-container').innerHTML = header({
+        email: sessionStorage.getItem('email'),
+        loggedIn: !!sessionStorage.getItem('token')
+    });
+
+    const main = Sammy('#main', async function () {
+        this.use('Handlebars', 'hbs');
+
+        this.get('#/', homeViewHandler);
+        this.get('#/register', registerViewHandler);
+        this.post('#/register', () => false);
+        this.get('#/login', loginViewHandler);
+        this.post('#/login', () => false);
+        this.get('#/logout', logoutHandler);
+        this.get('#/create', createViewHandler);
+        this.post('#/create', () => false);
+        this.get('#/details/:id', detailsViewHandler);
+        this.post('#/details/:id', () => false);
+        this.get('#/profile', profileViewHandler);
+
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user && !sessionStorage.getItem('token')) {
+                // logged in
+
+                const token = await firebase.auth().currentUser.getIdToken();
+
+                sessionStorage.setItem('token', token);
+                sessionStorage.setItem('email', user.email);
+
+                this.setLocation(['#/'])
+            } else if (!user && sessionStorage.getItem('token')) {
+                // logged out
+
+                sessionStorage.clear();
+                this.setLocation(['#/login']);
+            }
+
+            renderHeader();
+        });
+    });
+
+    main.run('#/');
 }
 
+init();
+
 async function homeViewHandler() {
-    await applyCommon.call(this);
+    const token = sessionStorage.getItem('token');
 
+    this.loggedIn = !!token;
 
-    await this.partial('./templates/home/home.hbs')
+    if (this.loggedIn) {
+        const ideas = await fetch(`https://teammanagerdb-7567c.firebaseio.com/ideas.json?auth=${token}`).then(res => res.json());
+
+        this.hasIdea = !!ideas;
+
+        if (this.hasIdea) {
+            this.ideas = Object
+                .entries(ideas)
+                .map(([id, {title, imageURL, likes}]) => ({id, title, imageURL, likes}))
+                .sort((a, b) => b.likes - a.likes);
+        }
+    }
+
+    await this.partial('./templates/home.hbs');
 }
 
 async function registerViewHandler() {
-    await applyCommon.call(this);
-    this.partials.registerForm = await this.load('./templates/register/registerForm.hbs');
-
-    await this.partial('./templates/register/pageRegister.hbs');
+    await this.partial('./templates/registerForm.hbs');
 
     const formRef = document.getElementById('register-form');
 
     formRef.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const form = createFormEntity(formRef, ['username', 'password', 'repeatPassword']);
+        notification.loading();
 
-        const {username, password, repeatPassword} = form.getValue();
+        try {
+            const form = createFormEntity(formRef, ['username', 'password', 'repeatPassword']);
 
-        if (password !== repeatPassword) return;
+            const {username, password, repeatPassword} = form.getValue();
 
-        const {user} = await firebase.auth().createUserWithEmailAndPassword(username, password);
+            if (password !== repeatPassword) throw new Error('Passwords not matching.');
 
-        const token = await firebase.auth().currentUser.getIdToken();
+            await firebase.auth().createUserWithEmailAndPassword(username, password);
 
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('email', user.email);
-
-        this.redirect(['#/dashboard'])
+            notification.clearLoading();
+            notification.success('Successfully registered user.');
+        } catch (e) {
+            notification.clearLoading();
+            notification.error(e);
+        }
     });
 }
 
 async function loginViewHandler() {
-    await applyCommon.call(this);
-    this.partials.loginForm = await this.load('./templates/login/loginForm.hbs');
-
-    await this.partial('./templates/login/loginPage.hbs');
+    await this.partial('./templates/loginForm.hbs');
 
     const formRef = document.getElementById('login-form');
 
     formRef.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const form = createFormEntity(formRef, ['username', 'password']);
+        notification.loading();
 
-        const {username, password} = form.getValue();
+        try {
+            const form = createFormEntity(formRef, ['username', 'password']);
 
-        const {user} = await firebase.auth().signInWithEmailAndPassword(username, password);
+            const {username, password} = form.getValue();
 
-        const token = await firebase.auth().currentUser.getIdToken();
+            await firebase.auth().signInWithEmailAndPassword(username, password);
 
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('email', user.email);
-
-        this.redirect(['#/dashboard'])
+            notification.clearLoading();
+            notification.success('Successfully logged user.');
+        } catch (e) {
+            notification.clearLoading();
+            notification.error(e);
+        }
     })
+
 }
 
-function logoutHandler() {
-    firebase.auth().signOut();
-}
+async function logoutHandler() {
+    notification.loading();
 
-async function dashboardViewHandler() {
-    await applyCommon.call(this);
-    this.partials.dashboard = await this.load('./templates/dashboard/dashboard.hbs');
+    await firebase.auth().signOut();
 
-    const token = sessionStorage.getItem('token');
-
-    const treks = await fetch(`https://teammanagerdb-7567c.firebaseio.com/ideas.json?auth=${token}`).then(res => res.json());
-
-    this.hasIdea = !!treks;
-
-    if (this.hasIdea) {
-        this.ideas = Object.entries(treks).map(([id, {title, imageURL}]) => ({id, title, imageURL}));
-    }
-
-    await this.partial('./templates/dashboard/dashboardPage.hbs');
+    notification.clearLoading();
+    notification.success('Logout successful.');
 }
 
 async function createViewHandler() {
-    await applyCommon.call(this);
-    this.partials.createForm = await this.load('./templates/create/createForm.hbs');
-
-    await this.partial('./templates/create/createPage.hbs');
+    await this.partial('./templates/createForm.hbs');
 
     const formRef = document.getElementById('create-form');
 
     formRef.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        notification.loading();
 
         const form = createFormEntity(formRef, ['title', 'description', 'imageURL']);
 
@@ -148,7 +169,7 @@ async function createViewHandler() {
         const author = sessionStorage.getItem('email');
         const idea = form.getValue();
 
-        await fetch('https://teammanagerdb-7567c.firebaseio.com/ideas.json?auth=' + token,
+        const ideaRef = await fetch(`https://teammanagerdb-7567c.firebaseio.com/ideas.json?auth=${token}`,
             {
                 method: 'POST',
                 body: JSON.stringify({
@@ -159,14 +180,14 @@ async function createViewHandler() {
             }
         ).then(res => res.json());
 
-        this.redirect(['#/dashboard'])
+        notification.clearLoading();
+        notification.success('Idea created successfully.');
+
+        this.redirect(['#/details/' + ideaRef.name])
     })
 }
 
 async function detailsViewHandler(req) {
-    await applyCommon.call(this);
-    this.partials.details = await this.load('./templates/details/details.hbs');
-
     const id = req.params.id;
     const token = sessionStorage.getItem('token');
 
@@ -176,12 +197,17 @@ async function detailsViewHandler(req) {
     this.isAuthor = idea.author === sessionStorage.getItem('email');
     this.hasComment = !!idea.comments;
 
-    await this.partial('./templates/details/detailsPage.hbs');
+    await this.partial('./templates/details.hbs');
 
     const deleteBtn = document.getElementById('delete-' + id);
 
     deleteBtn && deleteBtn.addEventListener('click', async () => {
+        notification.loading();
+
         await fetch(`https://teammanagerdb-7567c.firebaseio.com/ideas/${id}.json?auth=${token}`, {method: 'DELETE'});
+
+        notification.clearLoading();
+        notification.success('Idea deleted successfully.');
 
         this.app.refresh();
     });
@@ -212,12 +238,29 @@ async function detailsViewHandler(req) {
                 method: 'PUT',
                 body: JSON.stringify({
                     ...idea,
-                    comments: [...(idea.comments || []), {email: sessionStorage.getItem('email'), comment: comment.value}]
+                    comments: [...(idea.comments || []), {
+                        email: sessionStorage.getItem('email'),
+                        comment: comment.value
+                    }]
                 })
             }
         );
 
-        this.redirect(['#/details/' + id])
+        this.app.refresh();
     });
 }
 
+async function profileViewHandler() {
+    const email = sessionStorage.getItem('email');
+    const token = sessionStorage.getItem('token');
+
+    const ideas = await fetch(`https://teammanagerdb-7567c.firebaseio.com/ideas.json?auth=${token}`).then(res => res.json());
+
+    const organizedIdeas = Object.values(ideas).filter(({author, location}) => author === email);
+
+    this.email = email;
+    this.numOrganizedIdeas = organizedIdeas.length;
+    this.organizedIdeas = organizedIdeas;
+
+    await this.partial('./templates/profile.hbs');
+}
