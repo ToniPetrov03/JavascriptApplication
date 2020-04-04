@@ -18,11 +18,12 @@ async function init() {
 
     const [index, header, notifications, footer] = templates.map(x => Handlebars.compile(x));
 
-    Handlebars.registerPartial('header', header);
     Handlebars.registerPartial('notifications', notifications);
     Handlebars.registerPartial('footer', footer);
 
-    document.getElementById('appContainer').innerHTML = index({
+    document.getElementById('appContainer').innerHTML = index();
+
+    const renderHeader = () => document.getElementById('header-container').innerHTML = header({
         email: sessionStorage.getItem('email'),
         loggedIn: !!sessionStorage.getItem('token')
     });
@@ -31,7 +32,6 @@ async function init() {
         this.use('Handlebars', 'hbs');
 
         this.get('#/', homeViewHandler);
-        this.get('#/home', homeViewHandler);
         this.get('#/register', registerViewHandler);
         this.post('#/register', () => false);
         this.get('#/login', loginViewHandler);
@@ -50,6 +50,8 @@ async function init() {
 
                 sessionStorage.setItem('token', token);
                 sessionStorage.setItem('email', user.email);
+
+                this.setLocation(['#/'])
             } else {
                 if (sessionStorage.getItem('token')) {
                     sessionStorage.clear();
@@ -58,6 +60,8 @@ async function init() {
                     this.setLocation(['#/']);
                 }
             }
+
+            renderHeader();
         });
     });
 
@@ -107,8 +111,6 @@ async function registerViewHandler() {
 
             notification.clearLoading();
             notification.success('Successfully registered user.');
-
-            this.redirect(['#/home'])
         } catch (e) {
             notification.clearLoading();
             notification.error(e);
@@ -135,8 +137,6 @@ async function loginViewHandler() {
 
             notification.clearLoading();
             notification.success('Successfully logged user.');
-
-            this.redirect(['#/home'])
         } catch (e) {
             notification.clearLoading();
             notification.error(e);
@@ -169,7 +169,7 @@ async function createViewHandler() {
         const author = sessionStorage.getItem('email');
         const trek = form.getValue();
 
-        const trekRes = await fetch('https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=' + token,
+        const trekRes = await fetch(`https://teammanagerdb-7567c.firebaseio.com/treks.json?auth=${token}`,
             {
                 method: 'POST',
                 body: JSON.stringify({
