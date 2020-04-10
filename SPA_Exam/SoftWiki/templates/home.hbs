@@ -1,0 +1,68 @@
+{{#if loggedIn}}
+    <div class="content">
+        <section class="js">
+            <h2>JavaScript</h2>
+            <div class="articles">
+                <article>
+                    {{#if hasJsArticle}}
+                        {{#each jsArticles as |article|}}
+                            <h3>{{article.title}}</h3>
+                            <p>{{article.content}}</p>
+                            <a href="#/details/JavaScript/{{article.id}}" class="btn details-btn">Details</a>
+                        {{/each}}
+                    {{else}}
+                        <h1>No articles yet</h1>
+                    {{/if}}
+                </article>
+            </div>
+        </section>
+        <section class="CSharp">
+            <h2>C#</h2>
+            <div class="articles">
+                <article>
+                    {{#if hasCSharpArticle}}
+                        {{#each cSharpArticles as |article|}}
+                            <h3>{{article.title}}</h3>
+                            <p>{{article.content}}</p>
+                            <a href="#/details/CSharp/{{article.id}}" class="btn details-btn">Details</a>
+                        {{/each}}
+                    {{else}}
+                        <h1>No articles yet</h1>
+                    {{/if}}
+                </article>
+            </div>
+        </section>
+        <section class="Java">
+            <h2>Java</h2>
+            <div class="articles">
+                <article>
+                    {{#if hasJavaArticle}}
+                        {{#each javaArticles as |article|}}
+                            <h3>{{article.title}}</h3>
+                            <p>{{article.content}}</p>
+                            <a href="#/details/Java/{{article.id}}" class="btn details-btn">Details</a>
+                        {{/each}}
+                    {{else}}
+                        <h1>No articles yet</h1>
+                    {{/if}}
+                </article>
+            </div>
+        </section>
+        <section class="Pyton">
+            <h2>Pyton</h2>
+            <div class="articles">
+                <article>
+                    {{#if hasPytonArticle}}
+                        {{#each pytonArticles as |article|}}
+                            <h3>{{article.title}}</h3>
+                            <p>{{article.content}}</p>
+                            <a href="#/details/Pyton/{{article.id}}" class="btn details-btn">Details</a>
+                        {{/each}}
+                    {{else}}
+                        <h1>No articles yet</h1>
+                    {{/if}}
+                </article>
+            </div>
+        </section>
+    </div>
+{{/if}}
